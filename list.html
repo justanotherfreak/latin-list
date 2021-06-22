@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<body>
+<div id="loader" class="center"></div>
+<style>
+mark {
+  background-color: yellow;
+  color: black;
+}
+
+#loader {
+	border: 12px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 12px solid #444444;
+    width: 70px;
+    height: 70px;
+    animation: spin 1s linear infinite;
+}
+          
+@keyframes spin {
+     100% {
+          transform: rotate(360deg);
+     }
+}
+          
+.center {
+	position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}	
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-sanitize.js"></script>
+<script>
+
+document.onreadystatechange = function() {
+	if (document.readyState !== "complete") {
+    	document.querySelector("body").style.visibility = "hidden";
+                document.querySelector("#loader").style.visibility = "visible";
+    } else {
+        document.querySelector("#loader").style.display = "none";
+        document.querySelector("body").style.visibility = "visible";
+    }
+};
+
+var app = angular.module("myShoppingList", ['ngSanitize']); 
+app.controller("myCtrl", function($scope) {
+	$scope.url = 'https://jsonplaceholder.typicode.com/posts'
+    $scope.get = function() {
+      var httpreq = new XMLHttpRequest();
+      httpreq.open("GET",$scope.url,false);
+      httpreq.send(null);
+      var rec =JSON.parse(httpreq.responseText);
+      for (let i in rec) {
+          var id = rec[i].id;
+	  	  if (id % 15 == 0) {
+		      rec[i].category = 'magic';
+		  } else if (id % 3 == 0) {
+			  rec[i].category = 'thirds';
+		  } else if (id % 5 == 0) {
+			  rec[i].category = 'fifths';
+		  } else {
+			  rec[i].category = undefined;
+		  }
+	  }
+	  objects = rec;
+	  return rec;
+    }
+	
+	$scope.getTitles = function (objectArray) {
+		var finalArray = [];
+			for (let i in objectArray) {
+			finalArray.push(objectArray[i].title);
+		}
+		var idArr = ['3b','5b','15b','0b'];
+
+		for (let i in idArr) {
+			document.getElementById(idArr[i]).style="color:inherit;background-color:green";
+		}
+	    return finalArray;
+	}
+
+	var objects = $scope.get();
+    $scope.titles = $scope.getTitles(objects);
+		
+    $scope.removeItem = function (x) {   
+		var index = $scope.titles.indexOf(x);
+        $scope.titles.splice(index, 1);
+		for (let i in objects) {
+			if (objects[i].title == x) {
+				delete objects[i];
+				break;
+			}
+		}
+    }
+    
+    $scope.filter = function (num) {
+		var filteredResult = [];
+		let categ;
+		if (num == 3) {
+			categ = 'thirds';
+		} else if (num == 5) {
+			categ = 'fifths';
+		} else if (num == 15) {
+			categ = 'magic';
+		}
+
+
+		for (let i in objects) {
+			if (objects[i].category == categ) {
+				filteredResult.push(objects[i]);
+			}
+		}
+        $scope.titles = $scope.getTitles(filteredResult);
+        
+		var idArr = ['3b','5b','15b','0b'];
+		var id = num + 'b';
+		delete idArr.indexOf(id);
+
+		for (let i in idArr) {
+			document.getElementById(idArr[i]).style="color:inherit;background-color:green";
+		}
+		document.getElementById(id).style="color:#000!important;background-color:#ccc!important";
+    }
+   	$scope.highlight = function(text) {
+		if (!$scope.searchMe) {
+        	return text;
+ 	   }
+   		var re = new RegExp($scope.searchMe, 'g');
+		return text.replace(re, '<mark>' + $scope.searchMe + '</mark>');
+	}
+});
+</script>
+
+<div ng-app="myShoppingList" ng-cloak ng-controller="myCtrl" class="w3-card-2 w3-margin" style="max-width:400px;">
+  <center>
+  <header class="w3-container w3-light-grey w3-padding-16">
+		  <h3>Latin List</h3>
+  </header>
+  <center>
+  <div class="w3-col s2"> &emsp; </div>
+  <div class="w3-col s2">
+    <button name="b1" id="3b" ng-click="filter(3)" class="w3-padding w3-green w3-button">Thirds</button>
+  </div>
+    <div class="w3-col s2">
+    <button name="b1" id="5b" ng-click="filter(5)" class="w3-padding w3-green w3-button">Fifths</button>
+  </div>
+  <div class="w3-col s2">
+    <button name="b1" id="15b" ng-click="filter(15)" class="w3-padding w3-green w3-button">Magic</button>
+  </div>
+  <div class="w3-col s2">
+    <button name="b1" id="0b" ng-click="filter(0)" class="w3-padding w3-green w3-button">Boring</button>
+  </div>
+  
+  <div class="w3-container w3-light-grey w3-padding-16">
+    <div class="w3-row w3-margin-top">
+      <div class="w3-col s10">
+        <input type="text" placeholder="Search" ng-model="searchMe" class="w3-input w3-border w3-padding">
+      </div>
+      <div class="w3-col s2">
+			  <button ng-click="titles=getTitles(get())" class="w3-btn w3-padding w3-green"><i class="glyphicon glyphicon-repeat"></i> </button>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <ul class="w3-ul">
+	<li ng-repeat="x in titles | filter:searchMe:strict" class="w3-padding-16" >
+		<div class="w3-container w3-light-grey w3-padding-16">
+    		<div class="w3-row w3-margin-top">
+				<div class="w3-col s10">
+					<span ng-bind-html="highlight(x)"></span>
+				</div>
+
+      			 <div class="w3-col s2">
+					 <span ng-click="removeItem(x)" style="cursor:pointer;" class="w3-right w3-margin-right w3-button">
+					 	<i class="glyphicon glyphicon-trash"></i>
+				  	 </span>
+				 </div>
+				 
+			</div>
+		</div>
+	</li>
+  </ul>
+</div>
+
+</body>
+</html>
