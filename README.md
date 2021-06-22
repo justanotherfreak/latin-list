@@ -1,2 +1,0 @@
-# latin-list
-Assignment for 
